@@ -42,7 +42,14 @@ namespace Covenant.Models.Grunts
         private List<GruntTaskReferenceAssembly> GruntTaskReferenceAssemblies { get; set; } = new List<GruntTaskReferenceAssembly>();
         private List<GruntTaskEmbeddedResource> GruntTaskEmbeddedResources { get; set; } = new List<GruntTaskEmbeddedResource>();
         [NotMapped]
-        public List<ReferenceSourceLibrary> ReferenceSourceLibraries => GruntTaskReferenceSourceLibraries.Select(e => e.ReferenceSourceLibrary).ToList();
+        public List<ReferenceSourceLibrary> ReferenceSourceLibraries
+        {
+            get => GruntTaskReferenceSourceLibraries.Select(e => e.ReferenceSourceLibrary).ToList();
+            set
+            {
+                GruntTaskReferenceSourceLibraries = value.Select(RSL => new GruntTaskReferenceSourceLibrary { GruntTaskId = this.Id, ReferenceSourceLibraryId = RSL.Id, ReferenceSourceLibrary = RSL }).ToList();
+            }
+        }
         [NotMapped]
         public List<ReferenceAssembly> ReferenceAssemblies => GruntTaskReferenceAssemblies.Select(e => e.ReferenceAssembly).ToList();
         [NotMapped]

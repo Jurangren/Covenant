@@ -312,11 +312,11 @@
         }
         set
         {
-            if (value != null && value.Id > 0)
+            if (value != null && value.Id > 0 && (_GruntTask == null || _GruntTask.Id != value.Id))
             {
                 _GruntTask = Service.GetGruntTask(value.Id).WaitResult();
             }
-            else
+            else if (value != null)
             {
                 _GruntTask = value;
             }

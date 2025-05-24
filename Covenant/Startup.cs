@@ -7,6 +7,8 @@ using System.Net;
 using System.Threading;
 using System.Collections.Concurrent;
 using System.IdentityModel.Tokens.Jwt;
+using System.Reflection;
+using System.ComponentModel.DataAnnotations.Schema;
 
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Builder;
@@ -143,6 +145,7 @@ namespace Covenant
             {
                 options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
                 options.SerializerSettings.Converters.Add(new StringEnumConverter(new CamelCaseNamingStrategy()));
+                options.SerializerSettings.ContractResolver = new NotMappedPropertyContractResolver();
             }).SetCompatibilityVersion(Microsoft.AspNetCore.Mvc.CompatibilityVersion.Version_3_0);
             services.AddServerSideBlazor();
 
@@ -184,9 +187,11 @@ namespace Covenant
                 c.SchemaFilter<AutoRestSchemaFilter>();
             });
 
-            services.AddControllers().AddJsonOptions(opts =>
+            services.AddControllers().AddNewtonsoftJson(options =>
             {
-                opts.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
+                options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
+                options.SerializerSettings.Converters.Add(new StringEnumConverter(new CamelCaseNamingStrategy()));
+                options.SerializerSettings.ContractResolver = new NotMappedPropertyContractResolver();
             });
 
             services.AddSingleton<ConcurrentDictionary<int, CancellationTokenSource>>();
@@ -259,4 +264,17 @@ namespace Covenant
             }
         }
     }
+        public class NotMappedPropertyContractResolver : DefaultContractResolver
+        {
+            protected override JsonProperty CreateProperty(MemberInfo member, Newtonsoft.Json.MemberSerialization memberSerialization)
+            {
+                JsonProperty property = base.CreateProperty(member, memberSerialization);
+                if (member.GetCustomAttribute<NotMappedAttribute>() != null)
+                {
+                    property.Writable = true;
+                    property.Readable = true;
+                }
+                return property;
+            }
+        }
 }

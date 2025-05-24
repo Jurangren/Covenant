@@ -2,8 +2,10 @@
 // Project: Covenant (https://github.com/cobbr/Covenant)
 // License: GNU GPLv3
 
+using System;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using System.Linq; // 添加此行
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 
@@ -70,8 +72,25 @@ namespace Covenant.Controllers
         // Edit a Task
         // </summary>
         [HttpPut(Name = "EditGruntTask")]
-        public async Task<ActionResult<GruntTask>> EditGruntTask([FromBody] GruntTask task)
+        public async Task<ActionResult<GruntTask>> EditGruntTask([FromBody] Newtonsoft.Json.Linq.JObject jsonBody)
         {
+            // 将原始 JSON Body 反序列化为 GruntTask 对象
+            GruntTask task = jsonBody.ToObject<GruntTask>();
+
+            // 处理 ReferenceSourceLibraries
+            if (jsonBody["ReferenceSourceLibraries"] != null && jsonBody["ReferenceSourceLibraries"].Type == Newtonsoft.Json.Linq.JTokenType.Array)
+            {
+                List<int> referenceSourceLibraryIds = new List<int>();
+                foreach (var item in jsonBody["ReferenceSourceLibraries"])
+                {
+                    if (item["Id"] != null && item["Id"].Type == Newtonsoft.Json.Linq.JTokenType.Integer)
+                    {
+                        referenceSourceLibraryIds.Add(item["Id"].ToObject<int>());
+                    }
+                }
+                // 调用服务层方法获取完整的 ReferenceSourceLibrary 对象
+                task.ReferenceSourceLibraries = (await _service.GetReferenceSourceLibrariesByIds(referenceSourceLibraryIds)).ToList();
+            }
             try
             {
                 return await _service.EditGruntTask(task);

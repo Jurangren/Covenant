@@ -12,6 +12,7 @@ using System.Security.Claims;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
 using System.Text.RegularExpressions;
+using System.Reflection;
 
 using Microsoft.Extensions.Configuration;
 using Microsoft.EntityFrameworkCore;
@@ -361,6 +362,7 @@ namespace Covenant.Core
     {
         Task<IEnumerable<T>> CreateEntities<T>(params T[] entities);
         void DisposeContext();
+        Task<IEnumerable<ReferenceSourceLibrary>> GetReferenceSourceLibrariesByIds(List<int> ids);
     }
 
     public interface IRemoteCovenantService : ICovenantUserService, IIdentityRoleService, IIdentityUserRoleService, IThemeService,
@@ -2015,6 +2017,15 @@ namespace Covenant.Core
             await _context.SaveChangesAsync();
             // _notifier.OnDeleteReferenceSourceLibrary(this, referenceSourceLibrary.Id);
         }
+
+        public async Task<IEnumerable<ReferenceSourceLibrary>> GetReferenceSourceLibrariesByIds(List<int> ids)
+        {
+            return await _context.ReferenceSourceLibraries
+                .Where(RSL => ids.Contains(RSL.Id))
+                .Include("ReferenceSourceLibraryReferenceAssemblies.ReferenceAssembly")
+                .Include("ReferenceSourceLibraryEmbeddedResources.EmbeddedResource")
+                .ToListAsync();
+        }
         #endregion
 
         #region GruntTaskOption Actions
@@ -2319,10 +2330,31 @@ namespace Covenant.Core
             removeResources.ToList().ForEach(async RR => updatingTask.Remove(await this.GetEmbeddedResource(RR)));
             addResources.ToList().ForEach(async AR => updatingTask.Add(await this.GetEmbeddedResource(AR)));
 
-            var removeLibraries = updatingTask.ReferenceSourceLibraries.Select(MRSL => MRSL.Id).Except(task.ReferenceSourceLibraries.Select(RSL => RSL.Id));
-            var addLibraries = task.ReferenceSourceLibraries.Select(RSL => RSL.Id).Except(updatingTask.ReferenceSourceLibraries.Select(MRSL => MRSL.Id));
-            removeLibraries.ToList().ForEach(async RL => updatingTask.Remove(await this.GetReferenceSourceLibrary(RL)));
-            addLibraries.ToList().ForEach(async AL => updatingTask.Add(await this.GetReferenceSourceLibrary(AL)));
+            var existingReferenceSourceLibraries = await _context.GruntTaskReferenceSourceLibraries
+                .Where(GTRSL => GTRSL.GruntTaskId == updatingTask.Id)
+                .ToListAsync();
+
+            var librariesToRemove = existingReferenceSourceLibraries
+                .Where(GTRSL => !task.ReferenceSourceLibraries.Any(RSL => RSL.Id == GTRSL.ReferenceSourceLibraryId))
+                .ToList();
+
+            foreach (var libraryToRemove in librariesToRemove)
+            {
+                _context.GruntTaskReferenceSourceLibraries.Remove(libraryToRemove);
+            }
+
+            var librariesToAdd = task.ReferenceSourceLibraries
+                .Where(RSL => !existingReferenceSourceLibraries.Any(GTRSL => GTRSL.ReferenceSourceLibraryId == RSL.Id))
+                .ToList();
+
+            foreach (var libraryToAdd in librariesToAdd)
+            {
+                _context.GruntTaskReferenceSourceLibraries.Add(new GruntTaskReferenceSourceLibrary
+                {
+                    GruntTaskId = updatingTask.Id,
+                    ReferenceSourceLibraryId = libraryToAdd.Id
+                });
+            }
 
             GruntTaskAuthor author = await _context.GruntTaskAuthors.FirstOrDefaultAsync(A => A.Name == task.Author.Name);
             if (author != null)

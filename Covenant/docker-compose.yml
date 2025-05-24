@@ -1,0 +1,16 @@
+version: '3.8' # 推荐使用较新的版本
+
+services:
+  covenant:
+    image: covenant
+    container_name: covenant
+    network_mode: "host"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      TZ: Asia/Shanghai
+    volumes:
+      - ./Data:/app/Data
+      - /etc/localtime:/etc/localtime:ro
+    stdin_open: true
+    tty: true
+    restart: unless-stopped

@@ -41,6 +41,7 @@ namespace Covenant.Models
         public DbSet<GruntCommand> GruntCommands { get; set; }
         public DbSet<CommandOutput> CommandOutputs { get; set; }
         public DbSet<GruntTasking> GruntTaskings { get; set; }
+        public DbSet<GruntTaskReferenceSourceLibrary> GruntTaskReferenceSourceLibraries { get; set; }
 
         public DbSet<Event> Events { get; set; }
         public DbSet<CapturedCredential> Credentials { get; set; }

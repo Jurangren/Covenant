@@ -77,12 +77,12 @@ namespace Covenant.API.Models
         /// <summary>
         /// </summary>
         [JsonProperty(PropertyName = "referenceAssemblies")]
-        public IList<ReferenceAssembly> ReferenceAssemblies { get; private set; }
+        public IList<ReferenceAssembly> ReferenceAssemblies { get; set; }
 
         /// <summary>
         /// </summary>
         [JsonProperty(PropertyName = "embeddedResources")]
-        public IList<EmbeddedResource> EmbeddedResources { get; private set; }
+        public IList<EmbeddedResource> EmbeddedResources { get; set; }
 
     }
 }

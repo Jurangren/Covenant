@@ -124,7 +124,7 @@ namespace Covenant.API.Models
         /// <summary>
         /// </summary>
         [JsonProperty(PropertyName = "referenceSourceLibraries")]
-        public IList<ReferenceSourceLibrary> ReferenceSourceLibraries { get; private set; }
+        public IList<ReferenceSourceLibrary> ReferenceSourceLibraries { get; set; }
 
         /// <summary>
         /// </summary>
