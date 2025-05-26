@@ -51,9 +51,23 @@ namespace Covenant.Models.Grunts
             }
         }
         [NotMapped]
-        public List<ReferenceAssembly> ReferenceAssemblies => GruntTaskReferenceAssemblies.Select(e => e.ReferenceAssembly).ToList();
+        public List<ReferenceAssembly> ReferenceAssemblies
+        {
+            get => GruntTaskReferenceAssemblies.Select(e => e.ReferenceAssembly).ToList();
+            set
+            {
+                GruntTaskReferenceAssemblies = value.Select(RA => new GruntTaskReferenceAssembly { GruntTaskId = this.Id, ReferenceAssemblyId = RA.Id, ReferenceAssembly = RA }).ToList();
+            }
+        }
         [NotMapped]
-        public List<EmbeddedResource> EmbeddedResources => GruntTaskEmbeddedResources.Select(e => e.EmbeddedResource).ToList();
+        public List<EmbeddedResource> EmbeddedResources
+        {
+            get => GruntTaskEmbeddedResources.Select(e => e.EmbeddedResource).ToList();
+            set
+            {
+                GruntTaskEmbeddedResources = value.Select(ER => new GruntTaskEmbeddedResource { GruntTaskId = this.Id, EmbeddedResourceId = ER.Id, EmbeddedResource = ER }).ToList();
+            }
+        }
 
         public bool UnsafeCompile { get; set; } = false;
         public bool TokenTask { get; set; } = false;

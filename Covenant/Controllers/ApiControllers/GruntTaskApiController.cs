@@ -91,6 +91,36 @@ namespace Covenant.Controllers
                 // 调用服务层方法获取完整的 ReferenceSourceLibrary 对象
                 task.ReferenceSourceLibraries = (await _service.GetReferenceSourceLibrariesByIds(referenceSourceLibraryIds)).ToList();
             }
+
+            // 处理 ReferenceAssemblies
+            if (jsonBody["ReferenceAssemblies"] != null && jsonBody["ReferenceAssemblies"].Type == Newtonsoft.Json.Linq.JTokenType.Array)
+            {
+                List<int> referenceAssemblyIds = new List<int>();
+                foreach (var item in jsonBody["ReferenceAssemblies"])
+                {
+                    if (item["Id"] != null && item["Id"].Type == Newtonsoft.Json.Linq.JTokenType.Integer)
+                    {
+                        referenceAssemblyIds.Add(item["Id"].ToObject<int>());
+                    }
+                }
+                // 调用服务层方法获取完整的 ReferenceAssembly 对象
+                task.ReferenceAssemblies = (await _service.GetReferenceAssembliesByIds(referenceAssemblyIds)).ToList();
+            }
+
+            // 处理 EmbeddedResources
+            if (jsonBody["EmbeddedResources"] != null && jsonBody["EmbeddedResources"].Type == Newtonsoft.Json.Linq.JTokenType.Array)
+            {
+                List<int> embeddedResourceIds = new List<int>();
+                foreach (var item in jsonBody["EmbeddedResources"])
+                {
+                    if (item["Id"] != null && item["Id"].Type == Newtonsoft.Json.Linq.JTokenType.Integer)
+                    {
+                        embeddedResourceIds.Add(item["Id"].ToObject<int>());
+                    }
+                }
+                // 调用服务层方法获取完整的 EmbeddedResource 对象
+                task.EmbeddedResources = (await _service.GetEmbeddedResourcesByIds(embeddedResourceIds)).ToList();
+            }
             try
             {
                 return await _service.EditGruntTask(task);

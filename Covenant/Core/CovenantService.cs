@@ -363,6 +363,8 @@ namespace Covenant.Core
         Task<IEnumerable<T>> CreateEntities<T>(params T[] entities);
         void DisposeContext();
         Task<IEnumerable<ReferenceSourceLibrary>> GetReferenceSourceLibrariesByIds(List<int> ids);
+        Task<IEnumerable<ReferenceAssembly>> GetReferenceAssembliesByIds(List<int> ids);
+        Task<IEnumerable<EmbeddedResource>> GetEmbeddedResourcesByIds(List<int> ids);
     }
 
     public interface IRemoteCovenantService : ICovenantUserService, IIdentityRoleService, IIdentityUserRoleService, IThemeService,
@@ -411,6 +413,20 @@ namespace Covenant.Core
             }
             await _context.SaveChangesAsync();
             return entities;
+        }
+
+        public async Task<IEnumerable<ReferenceAssembly>> GetReferenceAssembliesByIds(List<int> ids)
+        {
+            return await _context.ReferenceAssemblies
+                .Where(RA => ids.Contains(RA.Id))
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<EmbeddedResource>> GetEmbeddedResourcesByIds(List<int> ids)
+        {
+            return await _context.EmbeddedResources
+                .Where(ER => ids.Contains(ER.Id))
+                .ToListAsync();
         }
 
         #region CovenantUser Actions
